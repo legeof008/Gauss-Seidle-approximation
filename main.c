@@ -10,9 +10,19 @@ int main(int argc, char **argv)
   if (argc > 1 && (in = fopen(argv[1], "r")) != NULL)
   {
     matrix_t *m = read_matrix(in);
+    matrix_t *xold = make_matrix(m->rn,1);
+    matrix_t *xnew = make_matrix(m->rn,1);
     write_matrix(m,stdout);
     initc_matrix(m);
     write_matrix(m,stdout);
+    initfx(m,xold);
+    initfx(m,xnew);
+    add_to_entry_matrix(xnew,0,0,1.);
+    add_to_entry_matrix(xnew,0,1,8.);
+    write_matrix(xnew,stdout);
+    write_matrix(xold,stdout);
+    double err = errcount(xold,xnew);
+    printf("Blad rowny %f procent\n",err);
     /*int sym = 0;
     if (m != NULL)
     {
