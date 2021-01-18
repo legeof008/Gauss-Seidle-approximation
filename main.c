@@ -10,6 +10,7 @@ int main(int argc, char **argv)
   if (argc > 1 && (in = fopen(argv[1], "r")) != NULL)
   {
     matrix_t *m = read_matrix(in);
+    // wszystko ponizej tego komentarza do nastepnego komentarza do bzdury do testowania
     matrix_t *xold = make_matrix(m->rn,1);
     matrix_t *xnew = make_matrix(m->rn,1);
     write_matrix(m,stdout);
@@ -23,6 +24,7 @@ int main(int argc, char **argv)
     write_matrix(xold,stdout);
     double err = errcount(xold,xnew);
     printf("Blad rowny %f procent\n",err);
+    int n = cond2(m);
     /*int sym = 0;
     if (m != NULL)
     {
