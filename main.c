@@ -1,4 +1,5 @@
 #include "matrix.h"
+#include "piv_gs_solver.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -9,7 +10,10 @@ int main(int argc, char **argv)
   if (argc > 1 && (in = fopen(argv[1], "r")) != NULL)
   {
     matrix_t *m = read_matrix(in);
-    int sym = 0;
+    write_matrix(m,stdout);
+    initc_matrix(m);
+    write_matrix(m,stdout);
+    /*int sym = 0;
     if (m != NULL)
     {
       matrix_t *c = NULL;
@@ -61,5 +65,7 @@ int main(int argc, char **argv)
     return 0;
   }
   else
-    return 1;
+    return 1;*/
+  }
+    return 0;
 }
