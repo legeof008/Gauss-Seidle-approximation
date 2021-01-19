@@ -65,7 +65,7 @@ int cond1(matrix_t *m) // diagonalna w wierszu wieksza >= suma wspolczynnikow w 
     }
     return 1;
 }
-int cond2(matrix_t *m)// diagonalna w wierszu wieksza > suma wspolczynnikow w wierszu (dla conajmniej jednego wiersza)
+int cond2(matrix_t *m) // diagonalna w wierszu wieksza > suma wspolczynnikow w wierszu (dla conajmniej jednego wiersza)
 {
     double sum;
     int diag = 0;
@@ -81,7 +81,7 @@ int cond2(matrix_t *m)// diagonalna w wierszu wieksza > suma wspolczynnikow w wi
         }
         if (sum < *(m->e + i * m->cn + diag))
         {
-            printf("Spelniony warunek dla wiersza %d!\n",i);
+            printf("Spelniony warunek dla wiersza %d!\n", i);
             return 1;
         }
         printf("Suma, wiersz %d = %f\n", i, sum);
@@ -90,7 +90,35 @@ int cond2(matrix_t *m)// diagonalna w wierszu wieksza > suma wspolczynnikow w wi
     printf("Niespelniony warunek !\n");
     return 0;
 }
-void iter(matrix_t *m, matrix_t *xold, matrix_t *xnew)
+double rowsum(matrix_t *m, int rn, int diag)
 {
-    
+    double sum = 0;
+   
+    for (int j = 0; j < m->cn -1 ; j++)
+    {
+        if (j != diag)
+        {
+            sum += *(m->e + rn * m->cn + j);
+        }
+    }
+
+    return sum;
+}
+void getiter(matrix_t *m, matrix_t *xold, matrix_t *xnew)
+{
+    double sum;
+    int diag = 0;
+    for(int i = 0; i < m->rn; i++)
+    {
+        sum = 0;
+        for(int j = 0; j < m->cn - 1; j++)
+        {
+            if(j!=diag)
+            {
+                sum += *(m->e + i * m->cn + j) * (*(xold->e + j));
+            }
+        }
+        *(xnew->e + diag) = (*(m->e + i * m->cn  + diag) - sum)/ (*(m->e + i * m->cn));
+        diag++;
+    }
 }

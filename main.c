@@ -11,20 +11,28 @@ int main(int argc, char **argv)
   {
     matrix_t *m = read_matrix(in);
     // wszystko ponizej tego komentarza do nastepnego komentarza do bzdury do testowania
-    matrix_t *xold = make_matrix(m->rn,1);
-    matrix_t *xnew = make_matrix(m->rn,1);
-    write_matrix(m,stdout);
+    matrix_t *xold = make_matrix(m->rn, 1);
+    matrix_t *xnew = make_matrix(m->rn, 1);
+    write_matrix(m, stdout);
     initc_matrix(m);
-    write_matrix(m,stdout);
-    initfx(m,xold);
-    initfx(m,xnew);
-    add_to_entry_matrix(xnew,0,0,1.);
-    add_to_entry_matrix(xnew,0,1,8.);
-    write_matrix(xnew,stdout);
-    write_matrix(xold,stdout);
-    double err = errcount(xold,xnew);
-    printf("Blad rowny %f procent\n",err);
-    int n = cond2(m);
+    write_matrix(m, stdout);
+    initfx(m, xold);
+    initfx(m, xnew);
+    write_matrix(xold, stdout);
+    for (int i = 0; i <= 11; i++)
+    {
+      if (i % 2 == 0)
+      {
+        getiter(m, xold, xnew);
+      }
+      else
+      {
+        getiter(m, xnew, xold);
+      }
+    }
+    write_matrix(xnew, stdout);
+    double err = errcount(xold, xnew);
+    printf("Blad maksymalny jest rowny: %lf\n", err);
     /*int sym = 0;
     if (m != NULL)
     {
@@ -79,5 +87,5 @@ int main(int argc, char **argv)
   else
     return 1;*/
   }
-    return 0;
+  return 0;
 }
