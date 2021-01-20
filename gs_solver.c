@@ -1,7 +1,11 @@
 #include "piv_gs_solver.h"
 #include "matrix.h"
-void solve(matrix_t *m, matrix_t *xold, matrix_t *xnew)
+void solve(matrix_t *m)
 {
+  if (m == NULL)
+    return 1;
+  matrix_t *xold = make_matrix(m->rn, 1);
+  matrix_t *xnew = make_matrix(m->rn, 1);
   write_matrix(m, stdout);
   initc_matrix(m);
   write_matrix(m, stdout);

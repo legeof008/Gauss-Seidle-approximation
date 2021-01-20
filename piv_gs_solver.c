@@ -54,68 +54,7 @@ void initfx(matrix_t *m, matrix_t *x) // inicjalizacja pierwszej w procesie maci
     for (int i = 0; i < m->rn; i++)
         put_entry_matrix(x, i, 0, *(m->e + i * m->cn + m->rn) / *(m->e + i * m->cn + i));
 }
-/*
-int cond1(matrix_t *m) // diagonalna w wierszu wieksza >= suma wspolczynnikow w wierszu (dla wszystkich wierszy)
-{
-    double sum;
-    int diag = 0;
-    int cond = 0;
-    for (int i = 0; i < m->rn; i++)
-    {
-        sum = 0;
-        for (int j = 0; j < m->cn - 1; j++)
-        {
-            if (j != diag)
-            {
-                sum += *(m->e + i * m->cn + j);
-            }
-        }
-        if (sum <= fabs(*(m->e + i * m->cn + diag)))
-        {
-            //printf("Niespelniony warunek !\n");
-            cond++;
-        }
-        diag++;
-    }
-    if (cond == m->rn)
-    {
-        // spelnione dla wszystkich wierszy
-        printf("Spelniony 1\n");
-        return 1;
-    }
-    else
-    {
-        // nie spelnione
-        printf("Nie spelniony 1, cond = %d\n", cond);
-        return 0;
-    }
-}
-int cond2(matrix_t *m) // diagonalna w wierszu wieksza > suma wspolczynnikow w wierszu (dla conajmniej jednego wiersza)
-{
-    double sum;
-    int diag = 0;
-    for (int i = 0; i < m->rn; i++)
-    {
-        sum = 0;
-        for (int j = 0; j < m->cn - 1; j++)
-        {
-            if (j != diag)
-            {
-                sum += *(m->e + i * m->cn + j);
-            }
-        }
-        if (sum < fabs(*(m->e + i * m->cn + diag)))
-        {
-            printf("Spelniony warunek 2 dla wiersza %d!\n", i);
-            return 1;
-        }
 
-        diag++;
-    }
-    printf("Niespelniony warunek 2 !\n");
-    return 0;
-}
-*/
 double rowsum(matrix_t *m, int rn, int diag)
 {
     double sum = 0;
