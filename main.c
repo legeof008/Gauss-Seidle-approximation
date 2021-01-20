@@ -1,4 +1,5 @@
 #include "matrix.h"
+#include "piv_gs_solver.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -9,7 +10,40 @@ int main(int argc, char **argv)
   if (argc > 1 && (in = fopen(argv[1], "r")) != NULL)
   {
     matrix_t *m = read_matrix(in);
-    int sym = 0;
+    // wszystko ponizej tego komentarza do nastepnego komentarza do bzdury do testowania
+    matrix_t *xold = make_matrix(m->rn, 1);
+    matrix_t *xnew = make_matrix(m->rn, 1);
+    solve(m,xold,xnew);
+    /*write_matrix(m, stdout);
+    initc_matrix(m);
+    write_matrix(m, stdout);
+    initfx(m, xold);
+    initfx(m, xnew);
+    write_matrix(xold, stdout);
+    double err;
+    for (int i = 0; i <= 11; i++)
+    {
+      if (i % 2 == 0)
+      {
+        printf("Iteracja nr. %d\n",i);
+        getiter(m, xold, xnew);
+        write_matrix(xnew, stdout);
+        err = errcount(xold, xnew);
+        printf("Blad maksymalny jest rowny: %lf\n", err);
+      }
+      else
+      {
+        printf("Iteracja nr. %d\n",i);
+        getiter(m, xnew, xold);
+        write_matrix(xold, stdout);
+        err = errcount(xold, xnew);
+        printf("Blad maksymalny jest rowny: %lf\n", err);
+      }
+    }
+    write_matrix(xnew, stdout);
+    err = errcount(xold, xnew);
+    printf("Blad maksymalny jest rowny: %lf\n", err);*/
+    /*int sym = 0;
     if (m != NULL)
     {
       matrix_t *c = NULL;
@@ -61,5 +95,7 @@ int main(int argc, char **argv)
     return 0;
   }
   else
-    return 1;
+    return 1;*/
+  }
+  return 0;
 }
