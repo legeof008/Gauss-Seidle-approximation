@@ -54,6 +54,7 @@ void initfx(matrix_t *m, matrix_t *x) // inicjalizacja pierwszej w procesie maci
     for (int i = 0; i < m->rn; i++)
         put_entry_matrix(x, i, 0, *(m->e + i * m->cn + m->rn) / *(m->e + i * m->cn + i));
 }
+/*
 int cond1(matrix_t *m) // diagonalna w wierszu wieksza >= suma wspolczynnikow w wierszu (dla wszystkich wierszy)
 {
     double sum;
@@ -67,18 +68,16 @@ int cond1(matrix_t *m) // diagonalna w wierszu wieksza >= suma wspolczynnikow w 
             if (j != diag)
             {
                 sum += *(m->e + i * m->cn + j);
-                
             }
         }
         if (sum <= fabs(*(m->e + i * m->cn + diag)))
         {
             //printf("Niespelniony warunek !\n");
-            cond ++;
-            
+            cond++;
         }
         diag++;
     }
-    if(cond == m->rn)
+    if (cond == m->rn)
     {
         // spelnione dla wszystkich wierszy
         printf("Spelniony 1\n");
@@ -87,10 +86,9 @@ int cond1(matrix_t *m) // diagonalna w wierszu wieksza >= suma wspolczynnikow w 
     else
     {
         // nie spelnione
-        printf("Nie spelniony 1, cond = %d\n",cond);
+        printf("Nie spelniony 1, cond = %d\n", cond);
         return 0;
     }
-    
 }
 int cond2(matrix_t *m) // diagonalna w wierszu wieksza > suma wspolczynnikow w wierszu (dla conajmniej jednego wiersza)
 {
@@ -105,28 +103,24 @@ int cond2(matrix_t *m) // diagonalna w wierszu wieksza > suma wspolczynnikow w w
             {
                 sum += *(m->e + i * m->cn + j);
             }
-            
         }
         if (sum < fabs(*(m->e + i * m->cn + diag)))
         {
             printf("Spelniony warunek 2 dla wiersza %d!\n", i);
             return 1;
         }
-        
+
         diag++;
     }
     printf("Niespelniony warunek 2 !\n");
     return 0;
 }
-int cond3(matrix_t* xold, matrix_t* xnew, double err)
-{
-    ;
-}
+*/
 double rowsum(matrix_t *m, int rn, int diag)
 {
     double sum = 0;
-   
-    for (int j = 0; j < m->cn -1 ; j++)
+
+    for (int j = 0; j < m->cn - 1; j++)
     {
         if (j != diag)
         {
@@ -140,19 +134,47 @@ void getiter(matrix_t *m, matrix_t *xold, matrix_t *xnew)
 {
     double sum;
     int diag = 0;
-    for(int i = 0; i < m->rn; i++)
+    for (int i = 0; i < m->rn; i++)
     {
         sum = 0;
-        for(int j = 0; j < m->cn - 1; j++)
+        for (int j = 0; j < m->cn - 1; j++)
         {
-            if(j!=diag)
+            if (j != diag)
             {
-                sum += get_entry_matrix(m,i,j) * get_entry_matrix(xold,j,0);
-                
+                sum += get_entry_matrix(m, i, j) * get_entry_matrix(xold, j, 0);
             }
         }
-        
-        *(xnew->e + diag) = (*(m->e + i * m->cn +m->cn - 1) - sum)/ (*(m->e + i * m->cn + diag));
+
+        *(xnew->e + diag) = (*(m->e + i * m->cn + m->cn - 1) - sum) / (*(m->e + i * m->cn + diag));
         diag++;
     }
+}
+int cond(matrix_t *m)
+{
+    double sum;
+    int strong_dom = 0;
+    for (int i = 0; i < m->rn; i++)
+    {
+        sum = 0;
+        for (int j = 0; j < m->cn - 1; j++)
+        {
+            if (j != i)
+                sum += fabs(*(m->e + i * m->cn + j));
+        }
+        if (sum > fabs(*(m->e + i * m->cn + i)))
+            return 0; // suma elementow wieksza od diagonali
+
+        if (fabs(*(m->e + i * m->cn + i)) > sum)
+            strong_dom = 1;
+    }
+    if (strong_dom)
+        return 1; // kryt. silnej dominacji spelnione dla conajmniej jednego wiersza
+                  // a kryt. slabej dominacji spelnione dla reszty wierszy
+    return 0;
+}
+// zamiana ostatniej kolumny macierzy na odpowiedzi
+void put_ans(matrix_t *m, matrix_t *x)
+{
+    for (int i = 0; i < m->rn; i++)
+        *(m->e + (i + 1) * m->cn - 1) = *(x->e + i);
 }
