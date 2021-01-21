@@ -1,10 +1,19 @@
-a.out: main.c matrix.o pivot.o gs_solver.o pivot_gs_solver.o 
-	$(CC) $^ 
-matrix.o: matrix.c matrix.h
-pivot.o: pivot.c matrix.h
-piv_gs_solver.o: pivot_gs_solver.c pivot_gs_solver.h matrix.h
-gs_solver.o: gs_solver.c
+aprox: main.o splines.o points.o aproksymator_na_bazie.o gaus/libge.a
+	$(CC) -o aprox  main.o splines.o points.o aproksymator_na_bazie.o -L gaus -l ge
+
+intrp: main.o splines.o points.o interpolator.o gaus/libge.a
+	$(CC) -o intrp  main.o splines.o points.o interpolator.o -L gaus -l ge
+
+prosta: main.o splines.o points.o prosta.o
+	$(CC) -o prosta  main.o splines.o points.o prosta.o	
+
+aproksymator_na_bazie.o: makespl.h points.h gaus/gs_solver.h
+	$(CC) -I gaus -c aproksymator_na_bazie.c -DAPPROX_BASE_SIZE=5
+
+interpolator.o: makespl.h points.h gaus/gs_solver.h
+	$(CC) -I gaus -c interpolator.c
+
 .PHONY: clean
 
 clean:
-	-rm *.o a.out
+	-rm *.o aprox intrp prosta

@@ -1,91 +1,163 @@
-#include "matrix.h"
-#include "piv_gs_solver.h"
+#include "points.h"
+#include "splines.h"
+#include "makespl.h"
+
+#include <getopt.h>
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
 
-int main(int argc, char **argv)
+char *usage =
+  "Usage: %s -s spline-file [-p points-file] [ -g gnuplot-file [-f from_x -t to_x -n n_points ] ]\n"
+  "            if points-file is given then\n"
+  "               reads discrete 2D points from points-file\n"
+  "               writes spline approximation to spline-file\n"
+  "               - number of points should be >= 4\n"
+  "            else (points-file not given)\n"
+  "               reads spline from spline-file\n"
+  "            endfi\n"
+  "            if gnuplot-file is given then\n"
+  "               makes table of n_points within <from_x,to_x> range\n"
+  "               - from_x defaults to x-coordinate of the first point in points-file,\n"
+  "               - to_x defaults to x-coordinate of the last point\n"
+  "               - n_points defaults to 100\n"
+  "               - n_points must be > 1\n"
+  "            endif\n";
+
+int
+main (int argc, char **argv)
 {
-  FILE *in;
-  if (argc > 1 && (in = fopen(argv[1], "r")) != NULL)
-  {
-    matrix_t *m = read_matrix(in);
-    // wszystko ponizej tego komentarza do nastepnego komentarza do bzdury do testowania
-    matrix_t *xold = make_matrix(m->rn, 1);
-    matrix_t *xnew = make_matrix(m->rn, 1);
-    write_matrix(m, stdout);
-    initc_matrix(m);
-    write_matrix(m, stdout);
-    initfx(m, xold);
-    initfx(m, xnew);
-    write_matrix(xold, stdout);
-    for (int i = 0; i <= 11; i++)
-    {
-      if (i % 2 == 0)
-      {
-        getiter(m, xold, xnew);
-      }
-      else
-      {
-        getiter(m, xnew, xold);
-      }
+  int opt;
+  char *inp = NULL;
+  char *out = NULL;
+  char *gpt = NULL;
+  double fromX = 0;
+  double toX = 0;
+  int n = 100;
+	char *progname= argv[0];
+
+  points_t pts;
+  spline_t spl;
+
+  pts.n = 0;
+  spl.n = 0;
+
+  /* process options, save user choices */
+  while ((opt = getopt (argc, argv, "p:s:g:f:t:n:")) != -1) {
+    switch (opt) {
+    case 'p':
+      inp = optarg;
+      break;
+    case 's':
+      out = optarg;
+      break;
+    case 'g':
+      gpt = optarg;
+      break;
+    case 'f':
+      fromX = atof (optarg);
+      break;
+    case 't':
+      toX = atof (optarg);
+      break;
+    case 'n':
+      n = atoi (optarg);
+      break;
+    default:                   /* '?' */
+      fprintf (stderr, usage, progname);
+      exit (EXIT_FAILURE);
     }
-    write_matrix(xnew, stdout);
-    double err = errcount(xold, xnew);
-    printf("Blad maksymalny jest rowny: %lf\n", err);
-    /*int sym = 0;
-    if (m != NULL)
-    {
-      matrix_t *c = NULL;
-      int *row_per = malloc(m->rn * sizeof *row_per);
-      printf("\nMacierz:\n");
-      write_matrix(m, stdout);
-      if (argc > 2 && strcmp(argv[2], "-s") == 0)
-      {
-        c = symm_pivot_ge_matrix(m, row_per);
-        sym = 1;
-      }
-      else
-        c = pivot_ge_matrix(m, row_per);
-      if (c != NULL)
-      {
-        int i;
-        printf("\nPo elim. Gaussa:\n");
-        write_matrix(c, stdout);
-        printf("Permutacja:");
-        for (i = 0; i < c->rn; i++)
-          printf(" %d", row_per[i]);
-        printf("\n");
-        if (bs_matrix(c) == 0)
-        {
-          int j;
-          int *iper = pivot_get_inv_per(c, row_per);
-          printf("Permutacja odwrotna:");
-          for (i = 0; i < c->rn; i++)
-            printf(" %d", iper[i]);
-          printf("\n");
-          printf("\nPo podstawieniu wstecz:\n");
-          write_matrix(c, stdout);
-          printf("Rozwiązania: \n");
-          for (j = 0; j < c->cn - c->rn; j++)
-          {
-            printf("Nr %d:\n", j + 1);
-            for (i = 0; i < c->rn; i++)
-            {
-              int oi = sym ? iper[i] : i;
-              printf("\t%g", *(c->e + oi * c->cn + j + c->rn));
-            }
-            printf("\n");
-          }
-        }
-      }
-      else
-        printf("nie lula!\n");
+  }
+	if( optind < argc ) {
+		fprintf( stderr, "\nBad parameters!\n" );
+		for( ; optind < argc; optind++ )
+			fprintf( stderr, "\t\"%s\"\n", argv[optind] );
+		fprintf( stderr, "\n" );
+		fprintf( stderr, usage, progname );
+		exit( EXIT_FAILURE );
+	}
+
+  /* if points-file was given, then read points, generate spline, save it to file */
+  if (inp != NULL) {
+    FILE *ouf = NULL; /* we shall open it later, when we shall get points */
+
+    FILE *inf = fopen (inp, "r");
+    if (inf == NULL) {
+      fprintf (stderr, "%s: can not read points file: %s\n\n", argv[0], inp);
+      exit (EXIT_FAILURE);
     }
-    return 0;
+
+    if (read_pts_failed (inf, &pts)) {
+      fprintf (stderr, "%s: bad contents of points file: %s\n\n", argv[0],
+               inp);
+      exit (EXIT_FAILURE);
+    }
+    else
+      fclose (inf);
+
+    ouf = fopen (out, "w");
+    if (ouf == NULL) {
+      fprintf (stderr, "%s: can not write spline file: %s\n\n", argv[0], out);
+      exit (EXIT_FAILURE);
+    }
+
+    make_spl (&pts, &spl);
+
+    if( spl.n > 0 )
+			write_spl (&spl, ouf);
+
+    fclose (ouf);
+  } else if (out != NULL) {  /* if point-file was NOT given, try to read splines from a file */
+    FILE *splf = fopen (out, "r");
+    if (splf == NULL) {
+      fprintf (stderr, "%s: can not read spline file: %s\n\n", argv[0], inp);
+      exit (EXIT_FAILURE);
+    }
+    if (read_spl (splf, &spl)) {
+      fprintf (stderr, "%s: bad contents of spline file: %s\n\n", argv[0],
+               inp);
+      exit (EXIT_FAILURE);
+    }
+  } else { /* ponts were not given nor spline was given -> it is an error */
+    fprintf (stderr, usage, argv[0]);
+    exit (EXIT_FAILURE);
   }
-  else
-    return 1;*/
+
+  if (spl.n < 1) { /* check if there is a valid spline */
+    fprintf (stderr, "%s: bad spline: n=%d\n\n", argv[0], spl.n);
+    exit (EXIT_FAILURE);
   }
+
+  /* check if plot was requested and generate it if yes */
+  if (gpt != NULL && n > 1) { 
+    FILE *gpf = fopen (gpt, "w");
+    int i;
+    double dx;
+		if( fromX == 0 && toX == 0 ) { /* calculate plot range if it was not specified */
+			if( pts.n > 1 ) {
+				fromX= pts.x[0];
+				toX=   pts.x[pts.n-1];
+			} else if( spl.n > 1 ) {
+				fromX= spl.x[0];
+				toX=   spl.x[spl.n-1];
+			} else {
+				fromX= 0;
+				toX= 1;
+			}
+		}
+    dx = (toX - fromX) / (n - 1);
+
+    if (gpf == NULL) {
+      fprintf (stderr, "%s: can not write gnuplot file: %s\n\n", argv[0],
+               gpt);
+      exit (EXIT_FAILURE);
+    }
+
+    for (i = 0; i < n; i++)
+      fprintf (gpf, "%g %g\n", fromX + i * dx,
+               value_spl (&spl, fromX + i * dx));
+
+    fclose (gpf);
+  }
+
   return 0;
 }
