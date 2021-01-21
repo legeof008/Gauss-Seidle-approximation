@@ -1,11 +1,12 @@
 #include "makespl.h"
-//#include "piv_ge_solver.h"
+#include "piv_ge_solver.h"
 #include "gs_solver.h" // metoda Gausa-Seidla
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <float.h>
 
+#define APPROX_BASE_SIZE 4 // 4 to maksymalna ilosc rownan aby metoda byla zbiezna
 /* UWAGA: liczbę używanych f. bazowych można ustawić przez wartość
           zmiennej środowiskowej APPROX_BASE_SIZE
 */
@@ -137,14 +138,14 @@ xfi(double a, double b, int n, int i, FILE *out)
 
 void make_spl(points_t *pts, spline_t *spl)
 {
-	printf("siema\n\n\n");
 	matrix_t *eqs = NULL;
 	double *x = pts->x;
 	double *y = pts->y;
 	double a = x[0];
 	double b = x[pts->n - 1];
 	int i, j, k;
-	int nb = pts->n - 3 > 10 ? 10 : pts->n - 3;
+	int nb = APPROX_BASE_SIZE;
+	//int nb = pts->n - 3 > 10 ? 10 : pts->n - 3;
 	char *nbEnv = getenv("APPROX_BASE_SIZE");
 
 	if (nbEnv != NULL && atoi(nbEnv) > 0)
@@ -188,7 +189,6 @@ void make_spl(points_t *pts, spline_t *spl)
 #ifdef DEBUG
 	write_matrix(eqs, stdout);
 #endif
-
 	if (solve(eqs))
 	{
 		spl->n = 0;
@@ -197,7 +197,6 @@ void make_spl(points_t *pts, spline_t *spl)
 #ifdef DEBUG
 	write_matrix(eqs, stdout);
 #endif
-
 	if (alloc_spl(spl, nb) == 0)
 	{
 		for (i = 0; i < spl->n; i++)
